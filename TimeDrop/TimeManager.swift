@@ -31,9 +31,17 @@ import OSLog
 
     func start() {
         isStarted = true
+        
+        if self.secondsRemaining == 0 {
+            self.secondsRemaining = timeFullSeconds
+        }
+        
         timer.sink { _ in
             if self.secondsRemaining > 0 {
                 self.secondsRemaining -= 1
+                if self.secondsRemaining == 0 {
+                    self.stop()
+                }
             }
         }
         .store(in: &cancellables)
