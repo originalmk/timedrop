@@ -88,6 +88,11 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu("Time interval") {
                         Button {
+                            timeManager.timeFullSeconds = 5
+                        } label: {
+                            Text("5 seconds")
+                        }
+                        Button {
                             timeManager.timeFullSeconds = 300
                         } label: {
                             Text("5 minutes")
