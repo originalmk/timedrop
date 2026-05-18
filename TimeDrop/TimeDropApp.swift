@@ -12,7 +12,7 @@ import SwiftData
 struct TimeDropApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Note.self,
+            Session.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
 

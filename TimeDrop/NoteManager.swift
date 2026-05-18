@@ -13,17 +13,14 @@ import SwiftData
 @Observable class NoteManager {
     private let logger = Logger()
     public var activeNote = Note(text: "")
+    private var sessionManager: SessionManager
+
+    init(sessionManager: SessionManager) {
+        self.sessionManager = sessionManager
+    }
     
-    func startNewNote(context: ModelContext) {
-        context.insert(activeNote)
-        
-        do {
-            try context.save()
-            logger.info("notes saved! \(self.activeNote.text)")
-        } catch {
-            logger.info("notes not saved, error: \(error)")
-        }
-        
+    func startNewNote() {
+        self.sessionManager.addSessionNote(note: activeNote)
         activeNote = Note(text: "")
     }
 }

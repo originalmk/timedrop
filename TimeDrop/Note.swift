@@ -10,6 +10,7 @@ import SwiftData
 @Model
 class Note {
     var text: String
+    var belongsTo: Session?
     
     init(text: String) {
         self.text = text

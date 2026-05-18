@@ -15,8 +15,14 @@ struct ContentView: View {
     private let logger = Logger()
     @State private var colonColor = Color.white
     private let timeManager = TimeManager.init()
-    @Bindable private var noteManager: NoteManager = NoteManager.init()
+    private var sessionManager: SessionManager
+    @Bindable private var noteManager: NoteManager
     @FocusState private var noteFocused: Bool
+    
+    init() {
+        sessionManager = SessionManager.init(timeManager: timeManager)
+        noteManager = NoteManager.init(sessionManager: sessionManager)
+    }
     
     var body: some View {
         NavigationStack {
@@ -55,42 +61,40 @@ struct ContentView: View {
                         Text("Time remaining")
                     }
                 }
-                HStack {
+                VStack {
                     if timeManager.isStarted {
-                        Button{
-                            timeManager.stop()
-                        } label: {
+                        TimeDropButton(style: .glass) {
                             Text("Stop timer")
-                                .padding(Edge.Set.horizontal, 10)
-                                .padding(Edge.Set.vertical, 5)
+                        } action: {
+                            timeManager.stop()
                         }
                         .buttonStyle(.glass)
                     } else {
-                        Button{
-                            timeManager.start()
-                        } label: {
+                        TimeDropButton(style: .glassProminent) {
                             Text("Start timer")
-                                .padding(Edge.Set.horizontal, 10)
-                                .padding(Edge.Set.vertical, 5)
+                        } action: {
+                            timeManager.start()
                         }
-                        .buttonStyle(.glassProminent)
                     }
-                    Button{
+                    
+                    TimeDropButton(style: .glass) {
+                        Text("Save session")
+                    } action: {
+                        noteManager.startNewNote()
                         timeManager.reset()
-                    } label: {
-                        Image(systemName: "arrow.counterclockwise").bold()
+                        sessionManager.startNewSession(context: modelContext)
                     }
-                    .buttonStyle(.bordered)
+                    .disabled(!timeManager.isStarted && timeManager.percantageLeft == 1.00)
+                    
+                    TimeDropButton(style: .bordered) {
+                        Image(systemName: "arrow.counterclockwise").bold()
+                    } action: {
+                        timeManager.reset()
+                    }
                 }
                 .padding(20)
                 VStack{
                     TextField("Write your session notes here", text: $noteManager.activeNote.text)
-                        .focused($noteFocused)
-                        .onChange(of: $noteFocused.wrappedValue) {
-                            if !$noteFocused.wrappedValue {
-                                noteManager.startNewNote(context: modelContext)
-                            }
-                        }
                 }
             }
             .padding(20)
@@ -133,7 +137,7 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
-                        NoteListView()
+                        SessionListView()
                     } label: {
                         Label("Notes", systemImage: "text.pad.header")
                     }
@@ -149,4 +153,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .modelContainer(for: Note.self, inMemory: true)
+        .modelContainer(for: Session.self, inMemory: true)
 }
