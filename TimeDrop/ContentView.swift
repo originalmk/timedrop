@@ -12,11 +12,12 @@ internal import Combine
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
     private let logger = Logger()
     @State private var colonColor = Color.white
     private let timeManager = TimeManager.init()
-
+    @Bindable private var noteManager: NoteManager = NoteManager.init()
+    @FocusState private var noteFocused: Bool
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -82,11 +83,20 @@ struct ContentView: View {
                     .buttonStyle(.bordered)
                 }
                 .padding(20)
+                VStack{
+                    TextField("Write your session notes here", text: $noteManager.activeNote.text)
+                        .focused($noteFocused)
+                        .onChange(of: $noteFocused.wrappedValue) {
+                            if !$noteFocused.wrappedValue {
+                                noteManager.startNewNote(context: modelContext)
+                            }
+                        }
+                }
             }
             .padding(20)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu("Time interval") {
+                    Menu {
                         Button {
                             timeManager.timeFullSeconds = 5
                         } label: {
@@ -117,6 +127,15 @@ struct ContentView: View {
                         } label: {
                             Text("25 minutes")
                         }
+                    } label: {
+                        Label("Interval", systemImage: "alarm")
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        NoteListView()
+                    } label: {
+                        Label("Notes", systemImage: "text.pad.header")
                     }
                 }
             }
@@ -124,24 +143,10 @@ struct ContentView: View {
             .ignoresSafeArea(edges: .top)
         }
     }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
-    }
 }
+
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: Note.self, inMemory: true)
 }
